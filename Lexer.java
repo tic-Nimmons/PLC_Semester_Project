@@ -1,4 +1,4 @@
-package plc.projects;
+package plc.project;
 
 import javax.lang.model.type.NullType;
 import java.util.List;
@@ -56,14 +56,17 @@ public final class Lexer {
             chars.advance();
             return lexNumber();
         }
-        else if(peek("=[']([^'\\n\\r\\\\]|escape)[']")){
-            return lexCharacter(chars.input, chars.index);
+        else if(peek("[']") && chars.has(1)){
+            chars.advance();
+            System.out.println("asd");
+            return lexCharacter();
         }
-        else if(peek("'\"' ([^\"\\n\\r\\\\] | escape)* '\"'")){
-            return lexString(chars.input, chars.index);
+        else if(peek("[\"]")){
+            chars.advance();
+            return lexString();
         }
         else if(peek("'\\'[bnrt'\"\\\\]")){
-            lexEscape(chars.input, chars.index);
+            lexEscape();
         }
         else if(peek("[!=&|]|[^A-Za-z0-9 ]")){
             System.out.println("..");
@@ -88,6 +91,7 @@ public final class Lexer {
                 if (peek("[.]")&&chars.has(1)){
                     chars.advance();
                     while (chars.has(0)&&(peek("[0-9]*"))){
+                        //System.out.println(chars.get(chars.index));
                         chars.advance();
                     }
                     return chars.emit(Token.Type.DECIMAL);
@@ -98,19 +102,59 @@ public final class Lexer {
             //TODO
     }
 
-    public Token lexCharacter(String literal, int index) {
-        Token dummie = new Token(Token.Type.CHARACTER,literal,index);
-        return dummie;
+    public Token lexCharacter() {
+        if (!chars.has(1)){
+            return chars.emit(Token.Type.CHARACTER);
+        }
+        if (peek("[\\\\]")){
+            chars.advance();
+            if (peek("[bnrt'\"\\\\]")){
+                chars.advance();
+            }
+            if (peek("[']")){
+                chars.advance();
+            }
+            return chars.emit(Token.Type.CHARACTER);
+        }
+        if (peek("[\n\r\t\b\f]")){
+            System.out.println("adsf");
+            chars.advance();
+        }
+        if (peek("[^'\\n\\r\\\\]")&& chars.has(1)){
+            chars.advance();
+        }
+        if (peek("[']")){
+            chars.advance();
+        }
+        return chars.emit(Token.Type.CHARACTER);
          //TODO
     }
 
-    public Token lexString(String literal, int index) {
-        Token dummie = new Token(Token.Type.STRING,literal,index);
-        return dummie;
-         //TODO
+    public Token lexString() {
+        while (chars.has(0)){
+            if (peek("[\\\\]")){
+                chars.advance();
+                if (peek("[bnrt'\"\\\\]")){
+                    chars.advance();
+                }
+                else {
+                    return chars.emit(Token.Type.STRING);
+                }
+            }
+            if (peek("[\"]")&&!chars.has(1)){
+                chars.advance();
+                return chars.emit(Token.Type.STRING);
+            }
+
+            if (!chars.has(1)){
+                return chars.emit(Token.Type.STRING);
+            }
+            chars.advance();
+        }
+        return chars.emit(Token.Type.STRING);
     }
 
-    public void lexEscape(String literal, int index) {
+    public void lexEscape() {
 
         //TODO
     }
