@@ -1,10 +1,12 @@
-package plc.projects;
+package plc.project;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import plc.project.ParseException;
+import plc.project.Token;
 
 import java.util.Arrays;
 import java.util.List;
@@ -30,7 +32,10 @@ public class LexerTests {
                 Arguments.of("Leading Digit", "1fish2fish3fishbluefish", false),
                 Arguments.of("single","@",true),
                 Arguments.of("single","S",true),
-                Arguments.of("empty","",false)
+                Arguments.of("empty","",false),
+                Arguments.of("single character","a",true),
+                Arguments.of("Underscores","___",false)
+
 
         );
     }
@@ -50,7 +55,10 @@ public class LexerTests {
                 Arguments.of("single zero","0",true),
                 Arguments.of("single number","1",true),
                 Arguments.of("float number", "1.23",false),
-                Arguments.of("empty","",false)
+                Arguments.of("empty","",false),
+                Arguments.of("Decimal","123.456",false),
+                Arguments.of("Comma Seperated","1,234",false),
+                Arguments.of("leading zero","007",false)
         );
     }
 
@@ -70,7 +78,10 @@ public class LexerTests {
                 Arguments.of("single 0", "0",false),
                 Arguments.of("single 0 point number", "0.123",true),
                 Arguments.of("01.123","01.123",false),
-                Arguments.of("0.","0.",false)
+                Arguments.of("0.","0.",false),
+                Arguments.of("single digit","1",false),
+                Arguments.of("trailing zero","7.000156",true),
+                Arguments.of("double decimal","1..0",false)
         );
     }
 
@@ -88,7 +99,9 @@ public class LexerTests {
                 Arguments.of("Multiple", "\'abc\'", false),
                 Arguments.of("symbol","\'$\'",true),
                 Arguments.of("'\\'","\'\\\'",true),
-                Arguments.of("'\\a'","\'\\a\'",false)
+                Arguments.of("'\\a'","\'\\a\'",false),
+                Arguments.of("Unterminated:","\'\\",false),
+                Arguments.of("Newline:","\'\r\'",true)
 
         );
     }

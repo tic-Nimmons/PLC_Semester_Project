@@ -1,4 +1,4 @@
-package plc.projects;
+package plc.project;
 
 import javax.lang.model.type.NullType;
 import java.util.List;
@@ -58,6 +58,7 @@ public final class Lexer {
         }
         else if(peek("[']") && chars.has(1)){
             chars.advance();
+            System.out.println("asd");
             return lexCharacter();
         }
         else if(peek("[\"]")){
@@ -90,6 +91,7 @@ public final class Lexer {
                 if (peek("[.]")&&chars.has(1)){
                     chars.advance();
                     while (chars.has(0)&&(peek("[0-9]*"))){
+                        //System.out.println(chars.get(chars.index));
                         chars.advance();
                     }
                     return chars.emit(Token.Type.DECIMAL);
@@ -109,7 +111,14 @@ public final class Lexer {
             if (peek("[bnrt'\"\\\\]")){
                 chars.advance();
             }
+            if (peek("[']")){
+                chars.advance();
+            }
             return chars.emit(Token.Type.CHARACTER);
+        }
+        if (peek("[\n\r\t\b\f]")){
+            System.out.println("adsf");
+            chars.advance();
         }
         if (peek("[^'\\n\\r\\\\]")&& chars.has(1)){
             chars.advance();
