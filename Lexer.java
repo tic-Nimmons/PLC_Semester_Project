@@ -1,6 +1,7 @@
 package plc.project;
 
 import javax.lang.model.type.NullType;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -29,7 +30,20 @@ public final class Lexer {
      * whitespace where appropriate.
      */
     public List<Token> lex() {
-        throw new UnsupportedOperationException(); //TODO
+        List<Token> tokenList = new ArrayList<>();
+        if (!chars.has(0)){
+            throw new ParseException("ParseException", chars.index);
+        }
+        while (chars.has(0)){
+            if (peek("[ \t]")){
+                chars.advance();
+                chars.skip();
+            }
+            Token flag = lexToken();
+            tokenList.add(flag);
+            //TODO
+        }
+        return tokenList;
     }
 
     /**
@@ -41,7 +55,9 @@ public final class Lexer {
      * by {@link #lex()}
      */
     public Token lexToken() {
-        System.out.println(chars.input);
+        if (!chars.has(0)){
+            throw new ParseException("ParseException", chars.index);
+        }
         if (peek("@|[A-Za-z]")) {
             chars.advance();
             return lexIdentifier();
@@ -58,7 +74,6 @@ public final class Lexer {
         }
         else if(peek("[']") && chars.has(1)){
             chars.advance();
-            System.out.println("asd");
             return lexCharacter();
         }
         else if(peek("[\"]")){
@@ -69,13 +84,12 @@ public final class Lexer {
             lexEscape();
         }
         else if(peek("[!=&|]|[^A-Za-z0-9 ]")){
-            System.out.println("..");
             return lexOperator();
         }
         else {
-            return chars.emit(Token.Type.STRING);
+            throw new ParseException("ParseException", chars.index);
         }
-        throw new UnsupportedOperationException();
+        throw new ParseException("ParseException", chars.index);
     }
 
     public Token lexIdentifier() {
@@ -91,7 +105,6 @@ public final class Lexer {
                 if (peek("[.]")&&chars.has(1)){
                     chars.advance();
                     while (chars.has(0)&&(peek("[0-9]*"))){
-                        //System.out.println(chars.get(chars.index));
                         chars.advance();
                     }
                     return chars.emit(Token.Type.DECIMAL);
@@ -104,7 +117,8 @@ public final class Lexer {
 
     public Token lexCharacter() {
         if (!chars.has(1)){
-            return chars.emit(Token.Type.CHARACTER);
+            chars.advance();
+            throw new ParseException("ParseException", chars.index);
         }
         if (peek("[\\\\]")){
             chars.advance();
@@ -117,7 +131,6 @@ public final class Lexer {
             return chars.emit(Token.Type.CHARACTER);
         }
         if (peek("[\n\r\t\b\f]")){
-            System.out.println("adsf");
             chars.advance();
         }
         if (peek("[^'\\n\\r\\\\]")&& chars.has(1)){
@@ -141,15 +154,17 @@ public final class Lexer {
                     return chars.emit(Token.Type.STRING);
                 }
             }
-            if (peek("[\"]")&&!chars.has(1)){
+            if (peek("[\"]")){
                 chars.advance();
                 return chars.emit(Token.Type.STRING);
             }
 
             if (!chars.has(1)){
-                return chars.emit(Token.Type.STRING);
+                chars.advance();
+                throw new ParseException("ParseException", chars.index);
             }
             chars.advance();
+
         }
         return chars.emit(Token.Type.STRING);
     }
@@ -165,28 +180,29 @@ public final class Lexer {
             if (peek("[=]")){
                 chars.advance();
             }
-            chars.emit(Token.Type.OPERATOR);
+            return chars.emit(Token.Type.OPERATOR);
         }
         if (peek("[=]") && chars.has(1)){
+
             chars.advance();
-            if (peek("[=]")){
+            if (peek("[=]")){;
                 chars.advance();
             }
-            chars.emit(Token.Type.OPERATOR);
+            return chars.emit(Token.Type.OPERATOR);
         }
         if (peek("[&]") && chars.has(1)){
             chars.advance();
             if (peek("[&]")){
                 chars.advance();
             }
-            chars.emit(Token.Type.OPERATOR);
+            return chars.emit(Token.Type.OPERATOR);
         }
         if (peek("[|]") && chars.has(1)){
             chars.advance();
             if (peek("[|]")){
                 chars.advance();
             }
-            chars.emit(Token.Type.OPERATOR);
+            return chars.emit(Token.Type.OPERATOR);
         }
         chars.advance();
         return chars.emit(Token.Type.OPERATOR);
